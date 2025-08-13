@@ -14,8 +14,13 @@ const Product = sequelize.define('Product', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  cost_price: {               // <-- Nuevo campo
+    type: DataTypes.FLOAT,
+    allowNull: false,
+    defaultValue: 0,
+  },
 }, {
-  tableName: 'products', // nombre de tu tabla en MySQL
+  tableName: 'products',
   timestamps: false,
 });
 
