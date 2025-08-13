@@ -1,73 +1,55 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom'; // Importa Link
 
 const CreateSale = ({ token }) => {
-  const [productos, setProductos] = useState([]);  // lista productos para seleccionar
-  const [clientes, setClientes] = useState([]);    // lista clientes para seleccionar
+  const [productos, setProductos] = useState([]);
+  const [clientes, setClientes] = useState([]);
   const [selectedCliente, setSelectedCliente] = useState('');
-  const [productosVenta, setProductosVenta] = useState([]); // array { id_producto, cantidad }
-
+  const [productosVenta, setProductosVenta] = useState([]);
   const [mensaje, setMensaje] = useState('');
+  const navigate = useNavigate();
 
-  // Cargar productos y clientes desde API al montar componente
-useEffect(() => {
-  // Cargar productos (desde backend SQL)
-  fetch('http://localhost:8000/api/articles')
-    .then(res => res.json())
-    .then(data => {
-      // Aquí valida si data es un array, si no, trata de buscar el array dentro de data
-      if (Array.isArray(data)) {
-        setProductos(data);
-      } else if (data && Array.isArray(data.products)) {
-        setProductos(data.products);
-      } else {
-        setProductos([]);
-        console.error('API productos no devolvió un array:', data);
-      }
+  // Cargar productos y clientes
+  useEffect(() => {
+    fetch('http://localhost:8000/api/articles')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setProductos(data);
+        else if (data && Array.isArray(data.products)) setProductos(data.products);
+        else setProductos([]);
+      })
+      .catch(console.error);
+
+    fetch('http://localhost:8000/api/users/clientes', {
+      headers: { Authorization: `Bearer ${token}` }
     })
-    .catch(console.error);
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setClientes(data);
+        else if (data && Array.isArray(data.users)) setClientes(data.users);
+        else setClientes([]);
+      })
+      .catch(console.error);
+  }, [token]);
 
-  // Cargar clientes (desde backend Mongo)
-  fetch('http://localhost:8000/api/users/clientes', {
-    headers: { Authorization: `Bearer ${token}` }
-  })
-    .then(res => res.json())
-    .then(data => {
-      // Igual valida clientes
-      if (Array.isArray(data)) {
-        setClientes(data);
-      } else if (data && Array.isArray(data.users)) {
-        setClientes(data.users);
-      } else {
-        setClientes([]);
-        console.error('API clientes no devolvió un array:', data);
-      }
-    })
-    .catch(console.error);
-}, [token]);
-
-  // Agregar producto a la venta
   const agregarProducto = (id_producto) => {
     if (!id_producto) return;
-    // Evitar agregar duplicados
     if (productosVenta.find(p => p.id_producto === id_producto)) return;
-
     setProductosVenta([...productosVenta, { id_producto, cantidad: 1 }]);
   };
 
-  // Cambiar cantidad de un producto en la venta
   const cambiarCantidad = (id_producto, cantidad) => {
     if (cantidad < 1) return;
     setProductosVenta(productosVenta.map(p => p.id_producto === id_producto ? { ...p, cantidad } : p));
   };
 
-  // Quitar producto de la venta
   const quitarProducto = (id_producto) => {
     setProductosVenta(productosVenta.filter(p => p.id_producto !== id_producto));
   };
 
-  // Enviar venta al backend
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMensaje('');
 
     if (!selectedCliente) {
       setMensaje('Selecciona un cliente');
@@ -99,69 +81,213 @@ useEffect(() => {
         const errorData = await res.json();
         setMensaje('Error: ' + (errorData.error || 'No se pudo crear la venta'));
       }
-    } catch (error) {
+    } catch {
       setMensaje('Error al conectar con el servidor');
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
   return (
-    <div>
-      <h2>Crear Venta</h2>
-      <form onSubmit={handleSubmit}>
-        <label>Cliente:</label>
-        <select
-          value={selectedCliente}
-          onChange={e => setSelectedCliente(e.target.value)}
-          required
-        >
-          <option value="">-- Selecciona un cliente --</option>
-          {clientes.map(c => (
-            <option key={c._id} value={c._id}>{c.name}</option>
-          ))}
-        </select>
+    <>
+      <nav style={styles.navbar}>
+        <div style={styles.logo}>MiSistema</div>
 
-        <h3>Productos</h3>
-        <select
-          onChange={e => {
-            agregarProducto(Number(e.target.value));
-            e.target.value = '';
-          }}
-          defaultValue=""
-        >
-          <option value="" disabled>-- Agregar producto --</option>
-          {productos.map(p => (
-            <option key={p.id} value={p.id}>{p.descripcion} (${p.price})</option>
-          ))}
-        </select>
+        <div style={styles.navLinks}>
+          <Link to="/dashboard-vendedor" style={styles.navLink}>← Volver al Dashboard</Link>
+          <button onClick={handleLogout} style={styles.logoutButton}>Cerrar Sesión</button>
+        </div>
+      </nav>
 
-        <ul>
-          {productosVenta.map(pv => {
-            const prod = productos.find(p => p.id === pv.id_producto);
-            return (
-              <li key={pv.id_producto}>
-                {prod ? prod.descripcion : 'Producto no encontrado'} - 
-                Cantidad: 
-                <input
-                  type="number"
-                  min="1"
-                  value={pv.cantidad}
-                  onChange={e => cambiarCantidad(pv.id_producto, Number(e.target.value))}
-                  style={{ width: '50px', marginLeft: '5px' }}
-                />
-                <button type="button" onClick={() => quitarProducto(pv.id_producto)} style={{ marginLeft: '10px' }}>
-                  Quitar
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+      <div style={styles.container}>
+        <h2 style={styles.title}>Crear Venta</h2>
 
-        <button type="submit">Crear Venta</button>
-      </form>
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <label style={styles.label}>Cliente:</label>
+          <select
+            value={selectedCliente}
+            onChange={e => setSelectedCliente(e.target.value)}
+            required
+            style={styles.select}
+          >
+            <option value="">-- Selecciona un cliente --</option>
+            {clientes.map(c => (
+              <option key={c._id} value={c._id}>{c.name}</option>
+            ))}
+          </select>
 
-      {mensaje && <p>{mensaje}</p>}
-    </div>
+          <label style={styles.label}>Agregar Producto:</label>
+          <select
+            onChange={e => {
+              agregarProducto(Number(e.target.value));
+              e.target.value = '';
+            }}
+            defaultValue=""
+            style={styles.select}
+          >
+            <option value="" disabled>-- Seleccionar producto --</option>
+            {productos.map(p => (
+              <option key={p.id} value={p.id}>{p.descripcion} (${p.price.toFixed(2)})</option>
+            ))}
+          </select>
+
+          {productosVenta.length > 0 && (
+            <>
+              <h3 style={{ marginTop: '20px' }}>Productos en la venta</h3>
+              <ul style={styles.productList}>
+                {productosVenta.map(pv => {
+                  const prod = productos.find(p => p.id === pv.id_producto);
+                  return (
+                    <li key={pv.id_producto} style={styles.productItem}>
+                      <span>{prod ? prod.descripcion : 'Producto no encontrado'}</span>
+                      <input
+                        type="number"
+                        min="1"
+                        value={pv.cantidad}
+                        onChange={e => cambiarCantidad(pv.id_producto, Number(e.target.value))}
+                        style={styles.quantityInput}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => quitarProducto(pv.id_producto)}
+                        style={styles.removeButton}
+                      >
+                        Quitar
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
+
+          {mensaje && <p style={styles.message}>{mensaje}</p>}
+
+          <button type="submit" style={styles.submitButton}>Crear Venta</button>
+        </form>
+      </div>
+    </>
   );
+};
+
+const styles = {
+  navbar: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#007bff',
+    color: 'white',
+    padding: '10px 20px',
+    position: 'sticky',
+    top: 0,
+    zIndex: 1000,
+  },
+  logo: {
+    fontWeight: '700',
+    fontSize: '1.5rem',
+  },
+  navLinks: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '15px',
+  },
+  navLink: {
+    color: 'white',
+    textDecoration: 'none',
+    fontWeight: '600',
+    cursor: 'pointer',
+    fontSize: '1rem',
+  },
+  logoutButton: {
+    backgroundColor: '#dc3545',
+    border: 'none',
+    padding: '8px 14px',
+    borderRadius: '4px',
+    color: 'white',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease',
+  },
+  container: {
+    maxWidth: 700,
+    margin: '30px auto',
+    padding: '20px',
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+  },
+  title: {
+    textAlign: 'center',
+    color: '#007bff',
+    marginBottom: 25,
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '15px',
+  },
+  label: {
+    fontWeight: '600',
+  },
+  select: {
+    padding: '8px',
+    fontSize: '1rem',
+    borderRadius: 4,
+    border: '1px solid #ccc',
+  },
+  productList: {
+    listStyle: 'none',
+    padding: 0,
+    marginTop: 0,
+  },
+  productItem: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'white',
+    padding: '8px 12px',
+    borderRadius: 4,
+    marginBottom: 8,
+    border: '1px solid #ddd',
+  },
+  quantityInput: {
+    width: 60,
+    marginLeft: 10,
+    marginRight: 10,
+    padding: '4px 6px',
+    fontSize: '1rem',
+    borderRadius: 4,
+    border: '1px solid #ccc',
+  },
+  removeButton: {
+    backgroundColor: '#dc3545',
+    border: 'none',
+    padding: '6px 12px',
+    color: 'white',
+    borderRadius: 4,
+    cursor: 'pointer',
+  },
+  message: {
+    color: '#dc3545',
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  submitButton: {
+    backgroundColor: '#007bff',
+    color: 'white',
+    padding: '12px',
+    fontSize: '1.1rem',
+    fontWeight: '700',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer',
+    marginTop: 10,
+  },
 };
 
 export default CreateSale;

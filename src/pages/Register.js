@@ -7,7 +7,7 @@ function Register() {
     name: '',
     email: '',
     password: '',
-    role: 'cliente' // 👈 valor inicial
+    role: 'cliente' // rol fijo a cliente
   });
 
   const handleChange = e => {
@@ -17,10 +17,16 @@ function Register() {
   const handleSubmit = async e => {
     e.preventDefault();
     try {
+      // Enviar siempre role: "cliente" independientemente del formData.role (por seguridad)
       const res = await fetch('http://localhost:8000/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: 'cliente'  // forzamos cliente aquí
+        })
       });
       const data = await res.json();
       alert("Registro exitoso");
@@ -57,12 +63,7 @@ function Register() {
           required
         />
 
-        {/* Campo para seleccionar rol */}
-        <select name="role" value={formData.role} onChange={handleChange}>
-          <option value="admin">Administrador</option>
-          <option value="vendedor">Vendedor</option>
-          <option value="cliente">Cliente</option>
-        </select>
+        {/* Eliminamos el select de rol */}
 
         <button type="submit">Registrarse</button>
         <Link to="/login">¿Ya tienes cuenta? Inicia sesión</Link>

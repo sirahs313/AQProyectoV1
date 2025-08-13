@@ -9,6 +9,7 @@ const User = require('./models/User');
 const ventasRoutes = require('./routes/ventas');
 const articlesRoutes = require('./routes/articles');  // Rutas SQL para productos
 const usersRoutes = require('./routes/users');
+const reportesRoutes = require('./routes/reportes');
 
 
 
@@ -28,6 +29,8 @@ app.use('/api/ventas', ventasRoutes);
 app.use('/api/articles', articlesRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/mapas', express.static(path.join(__dirname, '../backend-python/routes')));
+app.use('/api/reportes', reportesRoutes);
+
 
 // Registro de usuario (MongoDB)
 app.post('/api/register', async (req, res) => {

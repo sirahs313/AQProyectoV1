@@ -12,7 +12,8 @@ import DashboardCliente from './pages/DashboardCliente';
 import AdminUsers from './pages/AdminUsers';
 import AdminProducts from './pages/AdminProducts';
 import VentasList from './pages/VentasList';
-
+import ReporteVentas from './pages/ReporteVentas'; 
+import CreateSale from './pages/CreateSale';
 
 import PrivateRoute from './Components/PrivateRoute';  // importa PrivateRoute
 
@@ -28,11 +29,20 @@ function App() {
         <Route path="/RegisterProduct" element={<RegisterProduct />} />
         <Route path="/ArticleForm" element={<ArticleForm />} />
         <Route path="/articles" element={<ArticleList />} />
+         <Route path="/crear-venta" element={<CreateSale token={localStorage.getItem('token')} />} />
         <Route
   path="/admin/users"
   element={
     <PrivateRoute allowedRoles={['admin']}>
       <AdminUsers />
+    </PrivateRoute>
+  }
+/>
+<Route
+  path="/reportes/ventas"
+  element={
+    <PrivateRoute allowedRoles={['admin']}>
+      <ReporteVentas />
     </PrivateRoute>
   }
 />

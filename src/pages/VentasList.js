@@ -1,12 +1,20 @@
 import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const VentasList = ({ token }) => {
+  const navigate = useNavigate();
   const [ventas, setVentas] = useState([]);
   const [ubicacion, setUbicacion] = useState(null);
   const [loadingUbicacion, setLoadingUbicacion] = useState(true);
   const [errorUbicacion, setErrorUbicacion] = useState(false);
 
-  // Fetch ventas (depende de token)
+  // Logout
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
+  // Fetch ventas
   useEffect(() => {
     fetch('http://localhost:8000/api/ventas', {
       headers: { Authorization: `Bearer ${token}` }
@@ -25,7 +33,7 @@ const VentasList = ({ token }) => {
       });
   }, [token]);
 
-  // Fetch ubicación (solo se hace una vez)
+  // Fetch ubicación
   useEffect(() => {
     fetch('http://localhost:5000/api/ubicacion')
       .then(res => {
@@ -44,50 +52,134 @@ const VentasList = ({ token }) => {
   }, []);
 
   return (
-    <div>
-      <h2>Ventas</h2>
+    <div style={styles.pageContainer}>
+      {/* Navbar */}
+      <header style={styles.navbar}>
+        <div style={styles.logo}>MiSistema</div>
+        <nav style={styles.navLinks}>
+           <Link to="/dashboard-admin" style={styles.navLink}>Inicio</Link>  {/* este va al dashboard */}
+          <Link to="/admin/users" style={styles.navLink}>Usuarios</Link>
+          <Link to="/admin/products" style={styles.navLink}>Productos</Link>
+          <Link to="/ventas" style={{ ...styles.navLink, fontWeight: '700', textDecoration: 'underline' }}>Ventas</Link>
+       
+        </nav>
+        <button onClick={handleLogout} style={styles.logoutButton}>Cerrar Sesión</button>
+      </header>
 
-      {loadingUbicacion && <p>Cargando ubicación de la tienda...</p>}
-      {errorUbicacion && <p style={{ color: 'red' }}>Error cargando ubicación.</p>}
+      {/* Main Content */}
+      <main style={styles.mainContent}>
+        <h1 style={styles.title}>Listado de Ventas</h1>
 
-      {ventas.length === 0 ? (
-        <p>No hay ventas registradas.</p>
-      ) : (
-        ventas.map(v => (
-          <div key={v._id} style={{ border: '1px solid gray', margin: '10px', padding: '10px' }}>
-            <p><b>Fecha:</b> {new Date(v.fecha).toLocaleDateString()}</p>
-            <p><b>Vendedor:</b> {v.id_vendedor?.name}</p>
-            <p><b>Cliente:</b> {v.id_cliente?.name}</p>
-            <p><b>Productos:</b></p>
-            <ul>
-              {Array.isArray(v.productos) && v.productos.map(p => (
-                <li key={p.id_producto}>
-                  {p.descripcion} - Cantidad: {p.cantidad} - Precio: ${p.price}
-                </li>
-              ))}
-            </ul>
+        {loadingUbicacion && <p>Cargando ubicación de la tienda...</p>}
+        {errorUbicacion && <p style={{ color: 'red' }}>Error cargando ubicación.</p>}
 
-            <p style={{ fontSize: '0.9em', color: '#555', marginBottom: '4px' }}>
-              Ubicación de la tienda:
-            </p>
+        {ventas.length === 0 ? (
+          <p>No hay ventas registradas.</p>
+        ) : (
+          ventas.map(v => (
+            <div key={v._id} style={styles.ventaCard}>
+              <p><b>Fecha:</b> {new Date(v.fecha).toLocaleDateString()}</p>
+              <p><b>Vendedor:</b> {v.id_vendedor?.name || 'N/A'}</p>
+              <p><b>Cliente:</b> {v.id_cliente?.name || 'N/A'}</p>
+              <p><b>Productos:</b></p>
+              <ul>
+                {Array.isArray(v.productos) && v.productos.map(p => (
+                  <li key={p.id_producto}>
+                    {p.descripcion} - Cantidad: {p.cantidad} - Precio: ${p.price.toFixed(2)}
+                  </li>
+                ))}
+              </ul>
 
-            {ubicacion && (
-              <div style={{ width: '300px', height: '150px', border: '1px solid #ccc', borderRadius: '5px', overflow: 'hidden' }}>
-                <iframe
-                  title="Mapa dinámico de la tienda"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 'none' }}
-                  loading="lazy"
-                  src={`https://www.google.com/maps?q=${ubicacion.latitud},${ubicacion.longitud}&hl=es&z=15&output=embed`}
-                />
-              </div>
-            )}
-          </div>
-        ))
-      )}
+              <p style={{ fontSize: '0.9em', color: '#555', marginBottom: 4 }}>Ubicación de la tienda:</p>
+
+              {ubicacion && (
+                <div style={styles.mapContainer}>
+                  <iframe
+                    title="Mapa dinámico de la tienda"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 'none' }}
+                    loading="lazy"
+                    src={`https://www.google.com/maps?q=${ubicacion.latitud},${ubicacion.longitud}&hl=es&z=15&output=embed`}
+                  />
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </main>
     </div>
   );
+};
+
+const styles = {
+  pageContainer: {
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    minHeight: '100vh',
+    backgroundColor: '#f8f9fa',
+  },
+  navbar: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#007bff',
+    padding: '0 20px',
+    height: 60,
+    color: 'white',
+  },
+  logo: {
+    fontWeight: '700',
+    fontSize: '1.5rem',
+  },
+  navLinks: {
+    display: 'flex',
+    gap: 25,
+  },
+  navLink: {
+    color: 'white',
+    textDecoration: 'none',
+    fontWeight: '600',
+    fontSize: '1rem',
+    transition: 'color 0.3s ease',
+    cursor: 'pointer',
+  },
+  logoutButton: {
+    backgroundColor: '#dc3545',
+    border: 'none',
+    padding: '8px 14px',
+    borderRadius: 4,
+    color: 'white',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease',
+  },
+  mainContent: {
+    maxWidth: 960,
+    margin: '40px auto',
+    padding: '20px',
+    backgroundColor: 'white',
+    borderRadius: 8,
+    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+  },
+  title: {
+    textAlign: 'center',
+    color: '#007bff',
+    marginBottom: 30,
+  },
+  ventaCard: {
+    border: '1px solid #ddd',
+    padding: 15,
+    marginBottom: 20,
+    borderRadius: 6,
+    backgroundColor: '#fafafa',
+  },
+  mapContainer: {
+    width: 300,
+    height: 150,
+    border: '1px solid #ccc',
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
 };
 
 export default VentasList;

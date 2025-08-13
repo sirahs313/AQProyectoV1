@@ -70,5 +70,45 @@ router.get('/', verifyToken, allowRoles('admin', 'vendedor'), async (req, res) =
     res.status(500).json({ error: 'Error en servidor' });
   }
 });
+// GET /api/ventas/mis-compras - para que cliente vea sus compras
+router.get('/mis-compras', verifyToken, allowRoles('cliente'), async (req, res) => {
+  try {
+    const idCliente = req.user.id;
+
+    const compras = await Venta.find({ id_cliente: idCliente })
+      .populate('id_vendedor', 'name email role')
+      .populate('id_cliente', 'name email role');
+
+    const comprasConDetalle = await Promise.all(
+      compras.map(async (venta) => {
+        const productosConDetalle = await Promise.all(
+          venta.productos.map(async (p) => {
+            const prodSQL = await Product.findOne({ where: { id: p.id_producto } });
+            return {
+              id_producto: p.id_producto,
+              cantidad: p.cantidad,
+              descripcion: prodSQL ? prodSQL.descripcion : 'Producto no encontrado',
+              price: prodSQL ? prodSQL.price : 0,
+            };
+          })
+        );
+
+        return {
+          _id: venta._id,
+          fecha: venta.fecha,
+          id_vendedor: venta.id_vendedor,
+          id_cliente: venta.id_cliente,
+          productos: productosConDetalle,
+        };
+      })
+    );
+
+    res.json(comprasConDetalle);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error en servidor' });
+  }
+});
+
 
 module.exports = router;
