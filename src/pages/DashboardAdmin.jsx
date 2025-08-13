@@ -33,8 +33,7 @@ const DashboardAdmin = () => {
         <section style={styles.welcomeSection}>
           <h2>Bienvenido al panel de administración</h2>
           <p>
-            Desde aquí puedes gestionar usuarios, productos, consultar ventas y reportes. Usa la
-            barra de navegación para acceder a las diferentes secciones.
+            Desde aquí puedes gestionar usuarios, productos, consultar ventas y reportes.
           </p>
         </section>
 
