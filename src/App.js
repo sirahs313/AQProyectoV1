@@ -14,6 +14,7 @@ import AdminProducts from './pages/AdminProducts';
 import VentasList from './pages/VentasList';
 import ReporteVentas from './pages/ReporteVentas'; 
 import CreateSale from './pages/CreateSale';
+import VentasAdmin from './pages/VentasAdmin';
 
 import PrivateRoute from './Components/PrivateRoute';  // importa PrivateRoute
 
@@ -30,6 +31,7 @@ function App() {
         <Route path="/ArticleForm" element={<ArticleForm />} />
         <Route path="/articles" element={<ArticleList />} />
          <Route path="/crear-venta" element={<CreateSale token={localStorage.getItem('token')} />} />
+         <Route path="/ventas" element={<VentasAdmin />} />
         <Route
   path="/admin/users"
   element={
