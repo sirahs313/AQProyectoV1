@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from 'react';
 
 const DashboardCliente = () => {
-  const [ventas, setVentas] = useState([]);
+  const [compras, setCompras] = useState([]);
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem('token');
 
   useEffect(() => {
-    const fetchVentas = async () => {
+    const fetchCompras = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/ventas/mis-ventas', {
+        const res = await fetch('http://localhost:8000/api/ventas/mis-compras', {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
           const data = await res.json();
-          setVentas(data);
+          setCompras(data);
         } else {
-          console.error('Error al cargar ventas');
+          console.error('Error al cargar compras');
         }
       } catch (error) {
         console.error('Error en fetch:', error);
@@ -23,25 +23,28 @@ const DashboardCliente = () => {
         setLoading(false);
       }
     };
-    fetchVentas();
+    fetchCompras();
   }, [token]);
 
-  if (loading) return <p>Cargando ventas...</p>;
+  if (loading) return <p>Cargando compras...</p>;
 
   return (
     <div>
       <h1>Panel Cliente</h1>
-      <h2>Tus Ventas</h2>
-      {ventas.length === 0 ? (
-        <p>No tienes ventas registradas.</p>
+      <h2>Tus Compras</h2>
+      {compras.length === 0 ? (
+        <p>No tienes compras registradas.</p>
       ) : (
-        ventas.map((venta) => (
-          <div key={venta._id} style={{ border: '1px solid #ccc', marginBottom: '15px', padding: '10px' }}>
-            <p><strong>Fecha:</strong> {new Date(venta.fecha).toLocaleDateString()}</p>
-            <p><strong>Vendedor:</strong> {venta.id_vendedor?.name || 'Desconocido'}</p>
+        compras.map((compra) => (
+          <div
+            key={compra._id}
+            style={{ border: '1px solid #ccc', marginBottom: '15px', padding: '10px' }}
+          >
+            <p><strong>Fecha:</strong> {new Date(compra.fecha).toLocaleDateString()}</p>
+            <p><strong>Vendedor:</strong> {compra.id_vendedor?.name || 'Desconocido'}</p>
             <p><strong>Productos:</strong></p>
             <ul>
-              {venta.productos.map((producto) => (
+              {compra.productos.map((producto) => (
                 <li key={producto.id_producto}>
                   {producto.descripcion} - Cantidad: {producto.cantidad} - Precio unitario: ${producto.price.toFixed(2)}
                 </li>

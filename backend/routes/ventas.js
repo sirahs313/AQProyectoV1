@@ -1,19 +1,45 @@
 const express = require('express');
 const router = express.Router();
 const Venta = require('../models/Venta');
-const Product = require('../models/Product'); // Modelo Sequelize para productos
+const Product = require('../models/Product'); // Sequelize
 const { verifyToken, allowRoles } = require('../middlewares/auth');
 
-// Crear venta y otras rutas (si tienes, poner aquí)
+// POST crear venta
+router.post('/', verifyToken, allowRoles('admin', 'vendedor'), async (req, res) => {
+  try {
+    const { productos, id_cliente } = req.body;
+    const id_vendedor = req.user.id;
 
-// GET /api/ventas con detalle completo de productos (solo admin y vendedor)
+    if (!productos || !Array.isArray(productos) || productos.length === 0) {
+      return res.status(400).json({ error: 'Debe enviar productos para la venta' });
+    }
+    if (!id_cliente) {
+      return res.status(400).json({ error: 'Debe enviar id_cliente' });
+    }
+
+    const nuevaVenta = new Venta({
+      id_vendedor,
+      id_cliente,
+      productos,
+      fecha: new Date()
+    });
+
+    await nuevaVenta.save();
+
+    res.status(201).json({ message: 'Venta creada con éxito', venta: nuevaVenta });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error creando la venta' });
+  }
+});
+
+// GET listar ventas con detalle y populate (admin y vendedor)
 router.get('/', verifyToken, allowRoles('admin', 'vendedor'), async (req, res) => {
   try {
     const ventas = await Venta.find()
       .populate('id_vendedor', 'name email role')
       .populate('id_cliente', 'name email role');
 
-    // Mapeamos ventas para incluir detalle completo de productos desde MySQL
     const ventasConDetalle = await Promise.all(
       ventas.map(async (venta) => {
         const productosConDetalle = await Promise.all(
@@ -38,7 +64,7 @@ router.get('/', verifyToken, allowRoles('admin', 'vendedor'), async (req, res) =
       })
     );
 
-    res.json(ventasConDetalle); // Siempre enviamos array para evitar errores en frontend
+    res.json(ventasConDetalle);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error en servidor' });

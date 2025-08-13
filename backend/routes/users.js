@@ -65,4 +65,14 @@ router.delete('/:id', verifyToken, allowRoles('admin'), async (req, res) => {
   }
 });
 
+// Listar solo clientes (vendedores y admins pueden acceder)
+router.get('/clientes', verifyToken, allowRoles('admin', 'vendedor'), async (req, res) => {
+  try {
+    const clientes = await User.find({ role: 'cliente' }).select('-password');
+    res.json(clientes);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener clientes' });
+  }
+});
+
 module.exports = router;

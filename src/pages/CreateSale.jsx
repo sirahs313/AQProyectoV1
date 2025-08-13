@@ -9,21 +9,41 @@ const CreateSale = ({ token }) => {
   const [mensaje, setMensaje] = useState('');
 
   // Cargar productos y clientes desde API al montar componente
-  useEffect(() => {
-    // Cargar productos (desde backend SQL)
-    fetch('http://localhost:8000/api/articles')
-      .then(res => res.json())
-      .then(data => setProductos(data))
-      .catch(console.error);
-
-    // Cargar clientes (desde backend Mongo)
-    fetch('http://localhost:8000/api/users?role=cliente', { // suponiendo filtro por rol
-      headers: { Authorization: `Bearer ${token}` }
+useEffect(() => {
+  // Cargar productos (desde backend SQL)
+  fetch('http://localhost:8000/api/articles')
+    .then(res => res.json())
+    .then(data => {
+      // Aquí valida si data es un array, si no, trata de buscar el array dentro de data
+      if (Array.isArray(data)) {
+        setProductos(data);
+      } else if (data && Array.isArray(data.products)) {
+        setProductos(data.products);
+      } else {
+        setProductos([]);
+        console.error('API productos no devolvió un array:', data);
+      }
     })
-      .then(res => res.json())
-      .then(data => setClientes(data))
-      .catch(console.error);
-  }, [token]);
+    .catch(console.error);
+
+  // Cargar clientes (desde backend Mongo)
+  fetch('http://localhost:8000/api/users/clientes', {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then(res => res.json())
+    .then(data => {
+      // Igual valida clientes
+      if (Array.isArray(data)) {
+        setClientes(data);
+      } else if (data && Array.isArray(data.users)) {
+        setClientes(data.users);
+      } else {
+        setClientes([]);
+        console.error('API clientes no devolvió un array:', data);
+      }
+    })
+    .catch(console.error);
+}, [token]);
 
   // Agregar producto a la venta
   const agregarProducto = (id_producto) => {

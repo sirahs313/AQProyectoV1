@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import CreateSale from './CreateSale';
 
 const DashboardVendedor = () => {
   const [ventas, setVentas] = useState([]);
+  const [mostrarCrear, setMostrarCrear] = useState(false);
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -12,14 +14,17 @@ const DashboardVendedor = () => {
     })
       .then(res => res.json())
       .then(data => {
-        // Extraer id vendedor del token
+        console.log('Ventas recibidas:', data);
+
         const payload = JSON.parse(atob(token.split('.')[1]));
         const idVendedor = payload.id;
+        console.log('ID vendedor del token:', idVendedor);
 
-        // Convertir a string para evitar problemas de tipo
-        const ventasVendedor = data.filter(v => 
-          v.id_vendedor._id.toString() === idVendedor.toString()
-        );
+        const ventasVendedor = data.filter(v => {
+          const vendedorId = v.id_vendedor?._id || v.id_vendedor;
+          console.log('Venta id_vendedor:', vendedorId);
+          return String(vendedorId) === String(idVendedor);
+        });
 
         setVentas(ventasVendedor);
       })
@@ -28,14 +33,22 @@ const DashboardVendedor = () => {
 
   return (
     <div>
+      <h1>Panel Vendedor</h1>
+
+      <button onClick={() => setMostrarCrear(!mostrarCrear)}>
+        {mostrarCrear ? 'Cerrar formulario' : 'Generar venta'}
+      </button>
+
+      {mostrarCrear && <CreateSale token={token} />}
+
       <h2>Ventas realizadas</h2>
       {ventas.length === 0 ? (
         <p>No tienes ventas registradas.</p>
       ) : (
         ventas.map((venta) => (
-          <div key={venta._id}>
+          <div key={venta._id} style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '10px' }}>
             <p><strong>Fecha:</strong> {new Date(venta.fecha).toLocaleDateString()}</p>
-            <p><strong>Cliente:</strong> {venta.id_cliente.name}</p>
+            <p><strong>Cliente:</strong> {venta.id_cliente?.name || 'Cliente no encontrado'}</p>
             <p><strong>Productos:</strong></p>
             <ul>
               {venta.productos.map((p) => (
@@ -44,7 +57,6 @@ const DashboardVendedor = () => {
                 </li>
               ))}
             </ul>
-            <hr />
           </div>
         ))
       )}
