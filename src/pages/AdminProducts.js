@@ -12,7 +12,7 @@ const AdminProducts = () => {
   const [mensaje, setMensaje] = useState('');
 
   const fetchProducts = useCallback(() => {
-    fetch('http://localhost:8000/api/articles', {
+    fetch('http://192.168.1.65:8000/api/articles', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => res.json())
@@ -31,8 +31,8 @@ const AdminProducts = () => {
   const handleSubmit = e => {
     e.preventDefault();
     const url = editId
-      ? `http://localhost:8000/api/articles/${editId}`
-      : 'http://localhost:8000/api/articles';
+      ? `http://192.168.1.65:8000/api/articles/${editId}`
+      : 'http://192.168.1.65:8000/api/articles';
     const method = editId ? 'PUT' : 'POST';
 
     fetch(url, {

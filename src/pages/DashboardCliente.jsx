@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import jsPDF from 'jspdf';
 
+export const API_URL = 'http://192.168.1.65:8000/api';
+
+
 const DashboardCliente = () => {
   const [compras, setCompras] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,9 +13,9 @@ const DashboardCliente = () => {
   useEffect(() => {
     const fetchCompras = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/ventas/mis-compras', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(`http://192.168.1.65:8000/api/ventas/mis-compras`, {
+  headers: { Authorization: `Bearer ${token}` },
+});
         if (res.ok) {
           const data = await res.json();
           setCompras(data);

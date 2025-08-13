@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+export const API_URL = 'http://192.168.1.65:8000/api';
+
+
 
 const ReporteVentas = () => {
   const [reporte, setReporte] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/reportes/ventas', {
+     fetch(`http://192.168.1.65:8000/api/reportes/ventas`, { // 👈 usamos getApiUrl()
+
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(res => res.json())

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './AuthForm.css';
 import { Link } from 'react-router-dom';
+export const API_URL = 'http://192.168.1.65:8000/api';
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -18,7 +19,7 @@ function Register() {
     e.preventDefault();
     try {
       // Enviar siempre role: "cliente" independientemente del formData.role (por seguridad)
-      const res = await fetch('http://localhost:8000/api/register', {
+       const res = await fetch(`http://192.168.1.65:8000/api/register`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

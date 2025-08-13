@@ -25,7 +25,7 @@ const ArticleList = () => {
     if (!window.confirm('¿Quieres eliminar este producto?')) return;
 
     try {
-      const res = await fetch(`http://localhost:8000/api/articles/${id}`, {
+      const res = await fetch(`http://192.168.1.65:8000/api/articles/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
+export const API_URL = 'http://192.168.1.65:8000/api';
 
 const DashboardVendedor = () => {
   const [ventas, setVentas] = useState([]);
@@ -13,8 +14,8 @@ const DashboardVendedor = () => {
       setLoading(false);
       return;
     }
-
-    fetch('http://localhost:8000/api/ventas', {
+    
+ fetch(`http://192.168.1.65:8000/api/ventas`, { // 👈 usamos getApiUrl()
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())

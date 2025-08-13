@@ -16,7 +16,7 @@ const VentasList = ({ token }) => {
 
   // Fetch ventas
   useEffect(() => {
-    fetch('http://localhost:8000/api/ventas', {
+    fetch('http://192.168.1.65:8000/api/ventas', {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -35,7 +35,7 @@ const VentasList = ({ token }) => {
 
   // Fetch ubicación
   useEffect(() => {
-    fetch('http://localhost:5000/api/ubicacion')
+    fetch('http://192.168.1.65:5000/api/ubicacion')
       .then(res => {
         if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
         return res.json();
@@ -97,7 +97,7 @@ const VentasList = ({ token }) => {
                   <iframe
                     title="Mapa dinámico de la tienda"
                     width="100%"
-                    height="100%"
+                    height="300%"
                     style={{ border: 'none' }}
                     loading="lazy"
                     src={`https://www.google.com/maps?q=${ubicacion.latitud},${ubicacion.longitud}&hl=es&z=15&output=embed`}

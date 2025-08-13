@@ -11,7 +11,7 @@ const CreateSale = ({ token }) => {
 
   // Cargar productos y clientes
   useEffect(() => {
-    fetch('http://localhost:8000/api/articles')
+    fetch('http://192.168.1.65:8000/api/articles')
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setProductos(data);
@@ -20,7 +20,7 @@ const CreateSale = ({ token }) => {
       })
       .catch(console.error);
 
-    fetch('http://localhost:8000/api/users/clientes', {
+    fetch('http://192.168.1.65:8000/api/users/clientes', {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -61,7 +61,7 @@ const CreateSale = ({ token }) => {
     }
 
     try {
-      const res = await fetch('http://localhost:8000/api/ventas', {
+      const res = await fetch('http://192.168.1.65:8000/api/ventas', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
